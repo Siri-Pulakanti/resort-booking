@@ -1,18 +1,27 @@
 import { Component } from "react";
+import Billing from "./Billing";
+import DateSelector from "./DateSelector";
+import RoomDetails from "./RoomDetails";
 
-const _MS_PER_DAY = 24 * 60 * 60 * 1000;
-function dataDiffInDays(a, b) {
+const _MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+// a and b are javascript Date objects
+function dateDiffInDays(a, b) {
+  // Discard the time and time-zone information.
   const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
   const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
   return Math.floor((utc2 - utc1) / _MS_PER_DAY);
 }
 
 class Booking extends Component {
   constructor(props) {
     super(props);
+
     const today = new Date();
     const checkout = new Date();
     checkout.setDate(today.getDate() + 1);
+
     this.state = {
       checkinDate: today,
       checkoutDate: checkout,
@@ -20,51 +29,61 @@ class Booking extends Component {
       roomType: "Standard",
     };
   }
+
   static getDerivedStateFromProps(props, state) {
-    const totalDays = dataDiffInDays(state.checkinDate, state.checkoutDate);
-    const invalidRange = totalDays <= 0 || totalDays >= 20;
+    const totalDays = dateDiffInDays(state.checkinDate, state.checkoutDate);
+    const invalidRange = totalDays <= 0 || totalDays >= 10;
+
     return {
       totalDays,
       invalidRange,
     };
   }
-  onCheckInChange = (checkinDate) => {
+
+  onCheckinChange = (checkinDate) => {
     this.setState({
       checkinDate,
     });
   };
+
   onCheckoutChange = (checkoutDate) => {
     this.setState({
-      checkout,
+      checkoutDate,
     });
   };
+
   onOccupantsChange = (occupants) => {
     this.setState({
       occupants,
     });
   };
+
   onRoomTypeChange = (roomType) => {
-    this.setState(roomType);
+    this.setState({
+      roomType,
+    });
   };
 
   render() {
     return (
       <div>
         <h2>Booking</h2>
+
         <DateSelector
           checkinDate={this.state.checkinDate}
           checkoutDate={this.state.checkoutDate}
           totalDays={this.state.totalDays}
           invalidRange={this.state.invalidRange}
-          onCheckInChange={this.onCheckInChange}
+          onCheckinChange={this.onCheckinChange}
           onCheckoutChange={this.onCheckoutChange}
         />
         <RoomDetails
           occupants={this.state.occupants}
           roomType={this.state.roomType}
-          onRoomTypeChange={this.state.onRoomTypeChange}
+          onRoomTypeChange={this.onRoomTypeChange}
           onOccupantsChange={this.onOccupantsChange}
         />
+
         {!this.state.invalidRange && (
           <Billing
             roomType={this.state.roomType}
